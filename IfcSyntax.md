@@ -20,3 +20,13 @@ DATA;
 #4=IFCAPPLICATION(#2, '0.5.0-dev', 'IfcOpenShell-0.5.0-dev', '');
 #5=IFCOWNERHISTORY(#3, #4, $, .ADDED., $, #3, #4, 1510068037.0321496);
 ```
+
+
+
+
+## Footer
+Just simple
+```
+ENDSEC;
+END-ISO-10303-21;
+```
