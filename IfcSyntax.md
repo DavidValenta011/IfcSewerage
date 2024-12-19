@@ -1,4 +1,4 @@
-# IfcS
+# Basics of IFC file syntax needed for displaying water pipes
 
 ## Header
 Basic information
