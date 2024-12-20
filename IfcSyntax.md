@@ -22,6 +22,16 @@ DATA;
 ```
 
 
+## Let's create cylinder
+
+### Base
+At first, we need to define base of the cylinder, which is simple circle. The circle will be created in 2D space, so we need to define it's position position with **IFCCARTESIANPOINT** and direction of X-axis with **IFCDIRECTION**. This coordinates doesn't matter for the future cylinder placement. The circle is then simply created with **IFCCIRCLEPROFILEDEF**. The fourth parameter is the radius of the circle, in the example below it is set to 0.4.
+```
+#22=IFCCARTESIANPOINT((0.,0.));
+#23=IFCDIRECTION((1., 0.));
+#24=IFCAXIS2PLACEMENT2D(#22, #23);
+#25=IFCCIRCLEPROFILEDEF(.AREA., 'Circle', #24, 0.4);
+```
 
 
 ## Footer
