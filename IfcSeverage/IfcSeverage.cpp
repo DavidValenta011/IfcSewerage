@@ -156,7 +156,7 @@ std::vector<std::string> split(const std::string& line, char delimiter)
 
 int main()
 {
-	std::ifstream file("fulnek.XLS");
+	std::ifstream file("dulu.XLS");
 	if (!file.is_open())
 	{
 		std::cerr << "Unable to open file" << std::endl;
@@ -177,7 +177,7 @@ int main()
 
 	std::vector<std::map<std::string, double>> data;
 
-	int rowCounter = 21;
+
 
 	while (getline(file, line))
 	{
@@ -217,6 +217,76 @@ int main()
 
 	file.close();
 
+
+
+
+
+	// ještě přečíst šachty
+	std::ifstream file2("NONEXISTENTFILEfulnek_uzly.XLS");
+	if (!file2.is_open())
+	{
+		std::cerr << "Unable to open file s šachtama" << std::endl;
+
+	}
+	else
+	{
+
+		std::string line2;
+		std::map<std::string, int> headerIndexMap2;
+		if (getline(file2, line2))
+		{ // Read the header line
+			std::vector<std::string> headers = split(line2, '\t');
+			for (int i = 0; i < headers.size(); ++i)
+			{
+				headerIndexMap2[headers[i]] = i;
+			}
+		}
+
+
+
+
+		while (getline(file2, line2))
+		{
+			std::vector<std::string> row = split(line2, '\t');
+			if (row.size() > 20 && row[headerIndexMap2["Je šachta"]] == "1")
+			{
+
+				std::map<std::string, double> rowMap;
+
+
+
+				std::string x_poc = row[headerIndexMap2["x"]];
+				std::replace(x_poc.begin(), x_poc.end(), ',', '.');
+				std::string y_poc = row[headerIndexMap2["y"]];
+				std::replace(y_poc.begin(), y_poc.end(), ',', '.');
+				std::string z_poc = row[headerIndexMap2["z"]];
+				std::replace(z_poc.begin(), z_poc.end(), ',', '.');
+				std::string teren = row[headerIndexMap2["Terén"]];
+				std::replace(teren.begin(), teren.end(), ',', '.');
+
+
+				rowMap["x poè. uzlu"] = std::stod(x_poc);
+				rowMap["y poè. uzlu"] = std::stod(y_poc);
+				rowMap["z poè. uzlu"] = std::stod(z_poc);
+				rowMap["Délka 2D"] = std::stod(teren) - std::stod(z_poc);
+				rowMap["dx"] = 0.0;
+				rowMap["dy"] = 0.0;
+				rowMap["dz"] = 1.0;
+				data.push_back(rowMap);
+			}
+		}
+
+
+
+		file2.close();
+	}
+
+
+
+
+
+
+
 	double minX = std::numeric_limits<double>::max();
 	double minY = std::numeric_limits<double>::max();
 	double minZ = std::numeric_limits<double>::max();
@@ -245,7 +315,7 @@ int main()
 	}
 
 
-
+	int rowCounter = 21;
 	std::ofstream outputFile("output.ifc");
 
 	// Check if the file is open
