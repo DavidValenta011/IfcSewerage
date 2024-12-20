@@ -40,7 +40,7 @@ std::string doubleToStringWithThreeDecimals(double value)
 // #35 = IFCLOCALPLACEMENT($, #34);
 // #36 = IFCBUILDINGELEMENTPROXY('0qs7mimyyHvuvRW1aqWGIT', #5, 'Potrubi', $, $, #35, #30, $, $);
 // samotný výpis ifc válce
-void writeCylinder(std::ostream& outStream, int& lineCounter, double x_poc, double y_poc, double delka, double dx, double dy)
+void writeCylinder(std::ostream& outStream, int& lineCounter, double x_poc, double y_poc,  double z_poc, double delka, double dx, double dy, double dz)
 {
 
 
@@ -54,9 +54,9 @@ void writeCylinder(std::ostream& outStream, int& lineCounter, double x_poc, doub
 	outStream << "#" << lineCounter + 8 << "=IFCEXTRUDEDAREASOLID(#" << lineCounter + 4 << ", #" << lineCounter + 6 << ", #" << lineCounter + 7 << ", " << doubleToStringWithThreeDecimals(delka) << ");" << std::endl;
 	outStream << "#" << lineCounter + 9 << "=IFCSHAPEREPRESENTATION(#11, 'Body', 'SweptSolid', (#" << lineCounter + 8 << "));" << std::endl;
 	outStream << "#" << lineCounter + 10 << "=IFCPRODUCTDEFINITIONSHAPE($, $, (#" << lineCounter + 9 << "));" << std::endl;
-	outStream << "#" << lineCounter + 11 << "=IFCCARTESIANPOINT((" << doubleToStringWithThreeDecimals(-x_poc) << ", " << doubleToStringWithThreeDecimals(-y_poc) << ", 0.));" << std::endl;
-	outStream << "#" << lineCounter + 12 << "=IFCDIRECTION((" << doubleToStringWithThreeDecimals(-dx) << ", " << doubleToStringWithThreeDecimals(-dy) << ", 0.));" << std::endl;
-	outStream << "#" << lineCounter + 13 << "=IFCDIRECTION((-1., 0., 0.));" << std::endl;
+	outStream << "#" << lineCounter + 11 << "=IFCCARTESIANPOINT((" << doubleToStringWithThreeDecimals(x_poc) << ", " << doubleToStringWithThreeDecimals(y_poc) << ", " << doubleToStringWithThreeDecimals(z_poc) << "));" << std::endl;
+	outStream << "#" << lineCounter + 12 << "=IFCDIRECTION((" << doubleToStringWithThreeDecimals(dx) << ", " << doubleToStringWithThreeDecimals(dy) << ", " << doubleToStringWithThreeDecimals(dz) << "));" << std::endl;
+	outStream << "#" << lineCounter + 13 << "=IFCDIRECTION((1., 0., 0.));" << std::endl;
 	outStream << "#" << lineCounter + 14 << "=IFCAXIS2PLACEMENT3D(#" << lineCounter + 11 << ", #" << lineCounter + 12 << ", #" << lineCounter + 13 << ");" << std::endl;
 	outStream << "#" << lineCounter + 15 << "=IFCLOCALPLACEMENT($, #" << lineCounter + 14 << ");" << std::endl;
 	outStream << "#" << lineCounter + 16 << "=IFCBUILDINGELEMENTPROXY('0qs7mimyyHvuvRW1aqWGIT', #5, 'Potrubi', $, $, #" << lineCounter + 15 << ", #" << lineCounter + 10 << ", $, $);" << std::endl;
@@ -156,7 +156,7 @@ std::vector<std::string> split(const std::string& line, char delimiter)
 
 int main()
 {
-	std::ifstream file("ctverec.XLS");
+	std::ifstream file("fulnek.XLS");
 	if (!file.is_open())
 	{
 		std::cerr << "Unable to open file" << std::endl;
@@ -189,21 +189,26 @@ int main()
 
 
 
-			std::string x_poc = row[headerIndexMap["x poè. uzlu"]];
+			std::string x_poc = row[headerIndexMap["x poč. uzlu"]];
 			std::replace(x_poc.begin(), x_poc.end(), ',', '.');
-			std::string y_poc = row[headerIndexMap["y poè. uzlu"]];
+			std::string y_poc = row[headerIndexMap["y poč. uzlu"]];
 			std::replace(y_poc.begin(), y_poc.end(), ',', '.');
-			std::string delka = row[headerIndexMap["Délka 2D"]];
+			std::string z_poc = row[headerIndexMap["Poč. zaústění"]];
+			std::replace(z_poc.begin(), z_poc.end(), ',', '.');
+			std::string delka = row[headerIndexMap["Délka 3D"]];
 			std::replace(delka.begin(), delka.end(), ',', '.');
-			std::string dx = smerString(row[headerIndexMap["x poè. uzlu"]], row[headerIndexMap["x konc. uzlu"]]);
-			std::string dy = smerString(row[headerIndexMap["y poè. uzlu"]], row[headerIndexMap["y konc. uzlu"]]);
+			std::string dx = smerString(row[headerIndexMap["x poč. uzlu"]], row[headerIndexMap["x konc. uzlu"]]);
+			std::string dy = smerString(row[headerIndexMap["y poč. uzlu"]], row[headerIndexMap["y konc. uzlu"]]);
+			std::string dz = smerString(row[headerIndexMap["Poč. zaústění"]], row[headerIndexMap["Konc. zaústění"]]);
 
 
 			rowMap["x poè. uzlu"] = std::stod(x_poc);
 			rowMap["y poè. uzlu"] = std::stod(y_poc);
+			rowMap["z poè. uzlu"] = std::stod(z_poc);
 			rowMap["Délka 2D"] = std::stod(delka);
 			rowMap["dx"] = std::stod(dx);
 			rowMap["dy"] = std::stod(dy);
+			rowMap["dz"] = std::stod(dz);
 			data.push_back(rowMap);
 		}
 	}
@@ -214,6 +219,7 @@ int main()
 
 	double minX = std::numeric_limits<double>::max();
 	double minY = std::numeric_limits<double>::max();
+	double minZ = std::numeric_limits<double>::max();
 
 	for (auto& myMap : data)
 	{
@@ -225,12 +231,17 @@ int main()
 		{
 			minY = myMap["y poè. uzlu"];
 		}
+		if (myMap["z poè. uzlu"] < minZ)
+		{
+			minZ = myMap["z poè. uzlu"];
+		}
 	}
 
 	for (auto& myMap : data)
 	{
 		myMap["x poè. uzlu"] -= minX;
 		myMap["y poè. uzlu"] -= minY;
+		myMap["z poè. uzlu"] -= minZ;
 	}
 
 
@@ -243,7 +254,7 @@ int main()
 		writeHeader(outputFile, rowCounter);
 		for (auto& map : data) // výpis do stdout
 		{
-			writeCylinder(outputFile, rowCounter, map["x poè. uzlu"], map["y poè. uzlu"], map["Délka 2D"], map["dx"], map["dy"]);
+			writeCylinder(outputFile, rowCounter, map["x poè. uzlu"], map["y poè. uzlu"], map["z poè. uzlu"], map["Délka 2D"], map["dx"], map["dy"], map["dz"]);
 		}
 		writeFooter(outputFile, rowCounter);
 
